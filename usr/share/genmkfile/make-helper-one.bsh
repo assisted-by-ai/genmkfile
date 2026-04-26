@@ -150,12 +150,16 @@ make_parse_cmd() {
       ## make_all, which passes them through to
       ## 'make -f Makefile_orig all "$@"'. This is what lets
       ## 'genmkfile all VAR=value' propagate VAR=value to the
-      ## underlying 'make' invocation.
+      ## underlying 'make' invocation. We shift first so make_all
+      ## does not see its own target name as $1, and we do NOT
+      ## clear the rest of $@ -- the loop must continue so chained
+      ## genmkfile targets ('genmkfile all help', 'genmkfile all
+      ## deb-build-dep', ...) still dispatch after make_all
+      ## returns. Forwarded args are also re-examined by the loop;
+      ## tokens that are not registered targets break the loop
+      ## without re-running anything.
       shift
       make_function_run "$target_fn" "$@"
-      ## Args were forwarded; consume the rest so the loop
-      ## terminates.
-      set --
     else
       make_function_run "$target_fn"
       shift
